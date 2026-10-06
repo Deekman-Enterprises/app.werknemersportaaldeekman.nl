@@ -530,6 +530,13 @@
       <button type="submit" class="btn primary wide" id="request-send-btn">Aanvraag versturen</button>
     </form>
 
+    <div id="request-success" class="login-step" hidden style="text-align:center;">
+      <div style="font-size:46px;line-height:1;margin-bottom:10px;">✅</div>
+      <h1 style="margin-bottom:8px;">Aanvraag verstuurd!</h1>
+      <p class="lead" style="margin-bottom:24px;">Bedankt voor je aanvraag. We nemen zo snel mogelijk contact met je op via het e-mailadres dat je hebt ingevuld.</p>
+      <button type="button" class="btn primary wide" id="request-success-btn">Terug naar inloggen</button>
+    </div>
+
     <form id="login-step2" class="form-grid login-step" hidden>
       <button type="button" class="login-back" id="login-back-btn">&larr; Ander e-mailadres</button>
       <p class="hint-small" id="login-sent-to" style="margin:0 0 4px;"></p>
@@ -1258,7 +1265,11 @@
       phone: $("#req-phone").value.trim(),
       message: $("#req-message").value.trim()
     };
-    if(!payload.company_name || !payload.contact_name || !payload.email || !payload.message) return;
+    if(!payload.company_name || !payload.contact_name || !payload.email || !payload.message){
+      errBox.textContent = "Vul alle verplichte velden in (bedrijfsnaam, naam, e-mail en je bericht).";
+      errBox.hidden = false;
+      return;
+    }
     var btn = $("#request-send-btn"); btn.disabled = true; btn.textContent = "Versturen…";
     sb.from("access_requests").insert(payload).then(function(res){
       btn.disabled = false; btn.textContent = "Aanvraag versturen";
@@ -1267,11 +1278,14 @@
         errBox.hidden = false;
         return;
       }
-      toast("Bedankt! We nemen snel contact met je op.");
       $("#request-form").reset();
       $("#request-form").hidden = true;
-      $("#login-step1").hidden = false;
+      $("#request-success").hidden = false;
     });
+  });
+  $("#request-success-btn").addEventListener("click", function(){
+    $("#request-success").hidden = true;
+    $("#login-step1").hidden = false;
   });
 
   /* task modal */
