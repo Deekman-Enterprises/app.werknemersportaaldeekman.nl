@@ -185,9 +185,12 @@
     display:flex;align-items:center;gap:10px;
     background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb, var(--warn) 35%, transparent);
     border-radius:var(--radius);padding:11px 14px;font-size:13.5px;font-weight:600;margin-bottom:18px;
+    cursor:pointer;
   }
+  .banner.urgent{ background:var(--bad-soft);color:var(--bad);border-color:color-mix(in srgb, var(--bad) 35%, transparent); }
+  .badge-urgent{ background:var(--bad-soft);color:var(--bad);margin-right:6px; }
 
-  .stats{ display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px; }
+  .stats{ display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:26px; }
   .stat{
     background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
     padding:14px 16px;display:flex;flex-direction:column;gap:4px;
@@ -195,7 +198,8 @@
   .stat .num{font-family:var(--font-display);font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;}
   .stat .lbl{font-size:12px;color:var(--ink-soft);font-weight:600;}
   .stat.warn .num{color:var(--bad);}
-  @media (max-width:720px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:860px){ .stats{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:560px){ .stats{grid-template-columns:repeat(2,1fr);} }
 
   .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:26px 0 10px;flex-wrap:wrap;}
   .section-head h2{font-size:15px;}
@@ -425,6 +429,7 @@
         <div class="stat"><span class="num" id="stat-open">0</span><span class="lbl">Openstaande taken</span></div>
         <div class="stat"><span class="num" id="stat-today">0</span><span class="lbl">Voor jou vandaag</span></div>
         <div class="stat warn"><span class="num" id="stat-overdue">0</span><span class="lbl">Achterstallig</span></div>
+        <div class="stat warn"><span class="num" id="stat-urgent">0</span><span class="lbl">Spoed</span></div>
         <div class="stat"><span class="num" id="stat-sites">0</span><span class="lbl">Actieve websites</span></div>
       </section>
       <div id="view-today" class="view"></div>
@@ -462,6 +467,10 @@
           <input type="date" id="task-due">
         </label>
       </div>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" id="task-urgent" style="width:auto;">
+        <span>Markeer als spoed</span>
+      </label>
       <div class="modal-actions">
         <button type="button" class="btn ghost" id="task-cancel">Annuleren</button>
         <button type="submit" class="btn primary" id="task-submit">Taak opslaan</button>
@@ -500,6 +509,25 @@
       </label>
       <div class="login-error" id="login-error-1" hidden></div>
       <button type="submit" class="btn primary wide" id="login-send-btn">Stuur inlogcode</button>
+      <p class="hint-small" style="text-align:center;margin-top:2px;">
+        Nog geen klant? <button type="button" class="login-back" id="show-request-btn" style="display:inline;margin:0;">Vraag toegang aan</button>
+      </p>
+    </form>
+
+    <form id="request-form" class="form-grid login-step" hidden>
+      <button type="button" class="login-back" id="request-back-btn">&larr; Terug naar inloggen</button>
+      <p class="lead" style="margin:0 0 4px;">Vertel ons over je bedrijf, dan nemen we contact op om het portaal voor jullie in te richten.</p>
+      <label class="field">Bedrijfsnaam<input type="text" id="req-company" required></label>
+      <label class="field">Je naam<input type="text" id="req-name" required></label>
+      <label class="field">E-mailadres<input type="email" id="req-email" required></label>
+      <label class="field">Telefoonnummer <span style="font-weight:400;color:var(--ink-faint)">(optioneel)</span>
+        <input type="text" id="req-phone">
+      </label>
+      <label class="field">Wat wil je graag in het portaal?
+        <textarea id="req-message" rows="4" placeholder="Vertel over je website(s) en wat je zoekt in het portaal" required></textarea>
+      </label>
+      <div class="login-error" id="request-error" hidden></div>
+      <button type="submit" class="btn primary wide" id="request-send-btn">Aanvraag versturen</button>
     </form>
 
     <form id="login-step2" class="form-grid login-step" hidden>
@@ -783,11 +811,26 @@
     $("#count-team").textContent = assigneeList().length;
     $("#count-sites").textContent = state.websites.length;
   }
+  function urgentOpenTasks(){
+    return state.tasks.filter(function(t){ return t.status !== "done" && (t.urgent || t.ai_flagged_urgent); });
+  }
   function renderStats(){
     $("#stat-open").textContent = openTasks().length;
     $("#stat-today").textContent = myTodayTasks().length;
     $("#stat-overdue").textContent = state.tasks.filter(isOverdue).length;
+    $("#stat-urgent").textContent = urgentOpenTasks().length;
     $("#stat-sites").textContent = state.websites.length;
+    renderUrgentBanner();
+  }
+  function renderUrgentBanner(){
+    var slot = $("#banner-slot");
+    if(!slot) return;
+    var n = urgentOpenTasks().length;
+    if(n === 0){ slot.innerHTML = ""; return; }
+    slot.innerHTML =
+      '<div class="banner urgent" id="urgent-banner">⚡ '+n+' '+(n===1?"taak heeft":"taken hebben")+' spoed — klik om te bekijken</div>';
+    var b = $("#urgent-banner");
+    if(b) b.addEventListener("click", function(){ switchTab("all"); });
   }
   function renderProfileChip(){
     if(!state.identity) return;
@@ -802,6 +845,7 @@
     var dueCls = isOverdue(t) ? "overdue" : (isDueToday(t) ? "today" : "");
     var dueLabel = t.due_date ? (isOverdue(t) ? "Verlopen · " + fmtDate(t.due_date) : fmtDate(t.due_date)) : "";
     var site = t.website_name || siteName(t.website_id) || "Algemeen";
+    var urgent = !!(t.urgent || t.ai_flagged_urgent);
     return (
       '<div class="task '+(t.status==="done"?"done":"")+'" data-id="'+t.id+'">' +
         '<button class="check '+(t.status==="done"?"on":"")+'" data-action="toggle" data-id="'+t.id+'" aria-label="Markeer als afgerond">' +
@@ -809,6 +853,7 @@
         '</button>' +
         '<div class="task-main">' +
           '<div class="task-top">' +
+            (urgent ? '<span class="badge badge-urgent">⚡ Spoed</span>' : "") +
             '<span class="badge '+cat.cls+'">'+cat.label+'</span>' +
             (opts.hideSite ? "" : '<span class="site-tag">'+esc(site)+'</span>') +
           '</div>' +
@@ -923,6 +968,9 @@
           ? '<div class="hint-small">Nog geen bedrijven toegevoegd.</div>'
           : state.allowedDomains.map(function(d){
               return '<div class="admin-row"><span style="font-weight:600;min-width:140px;">'+esc(d.company_name||"(geen naam)")+'</span><span class="email">'+esc(d.domain)+'</span>' +
+                '<label style="display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap;">' +
+                  '<input type="checkbox" data-action="toggle-ai" data-domain="'+esc(d.domain)+'" '+(d.ai_urgent_enabled?"checked":"")+'> AI-spoeddetectie' +
+                '</label>' +
                 '<button type="button" class="icon-btn" data-action="remove-domain" data-domain="'+esc(d.domain)+'" title="Verwijderen" aria-label="Verwijderen">' +
                 '<svg viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8.5 6V4.5h3V6M6 6l.6 10h6.8L14 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
             }).join("")) +
@@ -932,7 +980,7 @@
         '<input type="text" id="domain-add-value" placeholder="bedrijfsnaam.nl" required>' +
         '<input type="email" id="company-add-admin" placeholder="(optioneel) eerste beheerder e-mail">' +
         '<button type="submit" class="btn small">Toevoegen</button></form>' +
-      '<p class="hint-small" style="margin-top:6px;">Vul optioneel meteen een beheerder in, zodat dat bedrijf direct zelf verder kan — anders kan niemand daar nog medewerkers toevoegen.</p>' +
+      '<p class="hint-small" style="margin-top:6px;">Vul optioneel meteen een beheerder in, zodat dat bedrijf direct zelf verder kan — anders kan niemand daar nog medewerkers toevoegen. "AI-spoeddetectie" is een optionele, betaalde upgrade per klant (zie kosten eerder besproken) — zet die alleen aan voor klanten die dit afnemen.</p>' +
       '</div>'
     );
   }
@@ -1097,6 +1145,7 @@
       switchTab("all");
     }
     if(action === "remove-domain") removeDomain(t.getAttribute("data-domain"));
+    if(action === "toggle-ai") toggleCompanyAi(t.getAttribute("data-domain"), t.checked);
     if(action === "remove-employee") removeEmployee(id);
     if(action === "remove-admin") removeAdminEmail(t.getAttribute("data-mail"));
   });
@@ -1189,6 +1238,42 @@
     });
   });
 
+  $("#show-request-btn").addEventListener("click", function(){
+    $("#login-step1").hidden = true;
+    $("#request-form").hidden = false;
+  });
+  $("#request-back-btn").addEventListener("click", function(){
+    $("#request-form").hidden = true;
+    $("#login-step1").hidden = false;
+    $("#request-error").hidden = true;
+  });
+  $("#request-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var errBox = $("#request-error");
+    errBox.hidden = true;
+    var payload = {
+      company_name: $("#req-company").value.trim(),
+      contact_name: $("#req-name").value.trim(),
+      email: $("#req-email").value.trim().toLowerCase(),
+      phone: $("#req-phone").value.trim(),
+      message: $("#req-message").value.trim()
+    };
+    if(!payload.company_name || !payload.contact_name || !payload.email || !payload.message) return;
+    var btn = $("#request-send-btn"); btn.disabled = true; btn.textContent = "Versturen…";
+    sb.from("access_requests").insert(payload).then(function(res){
+      btn.disabled = false; btn.textContent = "Aanvraag versturen";
+      if(res.error){
+        errBox.textContent = "Versturen mislukt: " + res.error.message;
+        errBox.hidden = false;
+        return;
+      }
+      toast("Bedankt! We nemen snel contact met je op.");
+      $("#request-form").reset();
+      $("#request-form").hidden = true;
+      $("#login-step1").hidden = false;
+    });
+  });
+
   /* task modal */
   function openTaskModal(id){
     if(state.websites.length === 0){ toast("Voeg eerst een website toe voordat je een taak aanmaakt."); openSiteModal(); return; }
@@ -1203,6 +1288,7 @@
     $("#task-desc").value = editing ? (editing.description||"") : "";
     $("#task-assignee").value = editing ? editing.assignee : state.identity.name;
     $("#task-due").value = editing ? (editing.due_date||"") : "";
+    $("#task-urgent").checked = editing ? !!editing.urgent : false;
     $("#task-overlay").hidden = false;
     setTimeout(function(){ $("#task-title").focus(); }, 30);
   }
@@ -1222,8 +1308,10 @@
       title: $("#task-title").value.trim(),
       description: $("#task-desc").value.trim(),
       assignee: $("#task-assignee").value.trim(),
-      due_date: $("#task-due").value || null
+      due_date: $("#task-due").value || null,
+      urgent: $("#task-urgent").checked
     };
+    if(!payload.urgent) payload.ai_flagged_urgent = false; // handmatig uitzetten telt ook als "geen spoed meer"
     if(!payload.title || !payload.assignee) return;
     var submitBtn = $("#task-submit"); submitBtn.disabled = true;
     var op;
@@ -1284,6 +1372,13 @@
     sb.from("websites").delete().eq("id", id).then(function(res){
       if(res.error){ toast("Verwijderen mislukt."); return; }
       toast("Website verwijderd");
+    });
+  }
+
+  function toggleCompanyAi(domain, enabled){
+    sb.from("allowed_domains").update({ ai_urgent_enabled: enabled }).eq("domain", domain).then(function(res){
+      if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
+      toast(enabled ? "AI-spoeddetectie aangezet" : "AI-spoeddetectie uitgezet");
     });
   }
 
