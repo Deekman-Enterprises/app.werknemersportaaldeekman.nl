@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Werknemersportaal Deekman Enterprises</title>
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#161a21;
+    --ink-soft:#565f6e;
+    --ink-faint:#8890a0;
+    --paper:#f4f3ee;
+    --surface:#ffffff;
+    --surface-2:#eeede6;
+    --line:#e1dfd6;
+    --line-strong:#cfcdc2;
+    --accent:#2b57c9;
+    --accent-ink:#ffffff;
+    --accent-soft:#e7edfb;
+    --accent-soft-line:#c9d8f5;
+    --good:#1f8a5f;
+    --good-soft:#e2f3ea;
+    --warn:#a8711b;
+    --warn-soft:#f8eed9;
+    --bad:#c1443f;
+    --bad-soft:#fbe9e7;
+    --cat-seo:#1f8a5f;
+    --cat-seo-soft:#e2f3ea;
+    --cat-sea:#6c4bd1;
+    --cat-sea-soft:#ece6fa;
+    --cat-content:#b56a26;
+    --cat-content-soft:#f7ead9;
+    --cat-tech:#33647f;
+    --cat-tech-soft:#e3edf1;
+    --shadow: 0 1px 2px rgba(20,20,15,0.04), 0 8px 24px -12px rgba(20,20,15,0.18);
+    --radius: 10px;
+    --font-display: "Archivo", "Arial Black", sans-serif;
+    --font-body: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e9ebf0; --ink-soft:#a7aec0; --ink-faint:#727a8c;
+      --paper:#12151b; --surface:#1a1e27; --surface-2:#20242f;
+      --line:#2b303c; --line-strong:#3a4150;
+      --accent:#6f96ff; --accent-ink:#0c1220; --accent-soft:#1c2740; --accent-soft-line:#324675;
+      --good:#4bc491; --good-soft:#173327;
+      --warn:#dba75a; --warn-soft:#3a2f18;
+      --bad:#ef7d78; --bad-soft:#3b2020;
+      --cat-seo:#4bc491; --cat-seo-soft:#16332a;
+      --cat-sea:#a692f5; --cat-sea-soft:#291f42;
+      --cat-content:#e0a25e; --cat-content-soft:#3a2c17;
+      --cat-tech:#7fb2cf; --cat-tech-soft:#1c2f38;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#e9ebf0; --ink-soft:#a7aec0; --ink-faint:#727a8c;
+    --paper:#12151b; --surface:#1a1e27; --surface-2:#20242f;
+    --line:#2b303c; --line-strong:#3a4150;
+    --accent:#6f96ff; --accent-ink:#0c1220; --accent-soft:#1c2740; --accent-soft-line:#324675;
+    --good:#4bc491; --good-soft:#173327;
+    --warn:#dba75a; --warn-soft:#3a2f18;
+    --bad:#ef7d78; --bad-soft:#3b2020;
+    --cat-seo:#4bc491; --cat-seo-soft:#16332a;
+    --cat-sea:#a692f5; --cat-sea-soft:#291f42;
+    --cat-content:#e0a25e; --cat-content-soft:#3a2c17;
+    --cat-tech:#7fb2cf; --cat-tech-soft:#1c2f38;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -14px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.5;
+    padding-inline:20px;
+    padding-block:0 40px;
+  }
+  h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;text-wrap:balance;margin:0;}
+  .mono{font-family:var(--font-mono);}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+
+  .wrap{max-width:1120px;margin:0 auto;}
+
+  header.top{
+    position:sticky; top:0; z-index:30;
+    background:color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    margin-inline:-20px;
+    padding-inline:20px;
+  }
+  .top-inner{
+    max-width:1120px;margin:0 auto;
+    display:flex;align-items:center;gap:16px;
+    padding-block:14px;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:baseline;gap:9px;margin-right:auto;}
+  .brand .mark{
+    width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--accent-ink);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:800;font-size:15px;flex:none;
+  }
+  .brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .brand-text .name{font-family:var(--font-display);font-weight:800;font-size:17px;}
+  .brand-text .sub{font-size:11.5px;color:var(--ink-faint);letter-spacing:.03em;text-transform:uppercase;}
+
+  .whoami{position:relative;}
+  .whoami-btn{
+    display:flex;align-items:center;gap:8px;
+    background:var(--surface);border:1px solid var(--line);border-radius:999px;
+    padding:6px 12px 6px 6px;cursor:pointer;color:var(--ink);font-size:13.5px;font-weight:600;
+  }
+  .whoami-btn .avatar{
+    width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;
+    border:1px solid var(--accent-soft-line);
+  }
+
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;justify-content:center;
+    border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);
+    font-size:13.5px;font-weight:600;padding:8px 14px;cursor:pointer;white-space:nowrap;
+    transition:transform .08s ease, border-color .12s ease, background .12s ease;
+  }
+  .btn:hover{border-color:var(--ink-faint);}
+  .btn:active{transform:scale(0.98);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+  .btn.primary:hover{filter:brightness(1.05);}
+  .btn.ghost{border-color:transparent;background:transparent;}
+  .btn.ghost:hover{background:var(--surface-2);}
+  .btn.danger{color:var(--bad);}
+  .btn.small{padding:5px 10px;font-size:12.5px;}
+  .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+  .btn[disabled]{opacity:.5;cursor:not-allowed;}
+  .btn.wide{width:100%;}
+
+  input[type=text], input[type=date], input[type=url], input[type=email], textarea, select{
+    font-family:inherit;font-size:13.5px;color:var(--ink);
+    background:var(--surface);border:1px solid var(--line-strong);border-radius:7px;
+    padding:8px 10px;width:100%;
+  }
+  textarea{resize:vertical;min-height:64px;}
+  label.field{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+
+  nav.tabs{
+    display:flex;gap:4px;padding-top:10px;margin-bottom:2px;
+    border-bottom:1px solid transparent;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    background:none;border:none;color:var(--ink-soft);font-weight:700;font-size:13.5px;
+    padding:9px 4px;cursor:pointer;position:relative;white-space:nowrap;
+    font-family:var(--font-display);letter-spacing:.01em;
+  }
+  nav.tabs button + button{margin-left:18px;}
+  nav.tabs button.active{color:var(--ink);}
+  nav.tabs button.active::after{
+    content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--accent);border-radius:2px;
+  }
+  nav.tabs button .count{
+    display:inline-block;margin-left:6px;background:var(--surface-2);color:var(--ink-soft);
+    border-radius:999px;padding:1px 7px;font-size:11px;font-family:var(--font-body);font-weight:700;
+  }
+  nav.tabs button.active .count{background:var(--accent-soft);color:var(--accent);}
+
+  main{padding-top:22px;}
+
+  .banner{
+    display:flex;align-items:center;gap:10px;
+    background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    border-radius:var(--radius);padding:11px 14px;font-size:13.5px;font-weight:600;margin-bottom:18px;
+  }
+
+  .stats{ display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px; }
+  .stat{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 16px;display:flex;flex-direction:column;gap:4px;
+  }
+  .stat .num{font-family:var(--font-display);font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;}
+  .stat .lbl{font-size:12px;color:var(--ink-soft);font-weight:600;}
+  .stat.warn .num{color:var(--bad);}
+  @media (max-width:720px){ .stats{grid-template-columns:repeat(2,1fr);} }
+
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:26px 0 10px;flex-wrap:wrap;}
+  .section-head h2{font-size:15px;}
+  .section-head .hint{font-size:12.5px;color:var(--ink-faint);}
+  .group-head{ display:flex;align-items:center;gap:8px;margin:22px 0 8px;font-size:13px;font-weight:700;color:var(--ink-soft); }
+  .group-head .dot{width:6px;height:6px;border-radius:50%;background:var(--line-strong);}
+
+  .tasklist{display:flex;flex-direction:column;gap:8px;}
+  .task{
+    display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;
+  }
+  .task.done{opacity:.62;}
+  .task.done .title{text-decoration:line-through;}
+  .check{
+    width:21px;height:21px;border-radius:6px;border:1.5px solid var(--line-strong);
+    background:var(--surface);cursor:pointer;flex:none;margin-top:1px;
+    display:flex;align-items:center;justify-content:center;color:var(--accent-ink);
+  }
+  .check.on{background:var(--good);border-color:var(--good);}
+  .check svg{width:13px;height:13px;display:none;}
+  .check.on svg{display:block;}
+  .task-main{min-width:0;}
+  .task-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;}
+  .title{font-weight:700;font-size:14.5px;}
+  .task-meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:5px;align-items:center;}
+  .desc{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  .site-tag{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);background:var(--surface-2);padding:2px 7px;border-radius:5px;}
+  .assignee{ display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink-soft); }
+  .assignee .av{width:16px;height:16px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:8.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;}
+  .badge{ display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px; letter-spacing:.01em; }
+  .badge.cat-seo{background:var(--cat-seo-soft);color:var(--cat-seo);}
+  .badge.cat-sea{background:var(--cat-sea-soft);color:var(--cat-sea);}
+  .badge.cat-content{background:var(--cat-content-soft);color:var(--cat-content);}
+  .badge.cat-tech{background:var(--cat-tech-soft);color:var(--cat-tech);}
+  .due{font-family:var(--font-mono);font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:5px;background:var(--surface-2);color:var(--ink-soft);}
+  .due.overdue{background:var(--bad-soft);color:var(--bad);}
+  .due.today{background:var(--accent-soft);color:var(--accent);}
+  .task-actions{display:flex;gap:4px;flex:none;}
+  .icon-btn{
+    width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:none;color:var(--ink-faint);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+  .icon-btn svg{width:15px;height:15px;}
+
+  .empty{ border:1px dashed var(--line-strong);border-radius:var(--radius);padding:30px 20px;text-align:center;color:var(--ink-soft); }
+  .empty .big{font-size:26px;margin-bottom:6px;}
+  .empty p{margin:4px 0 14px;font-size:13.5px;}
+  .loading{color:var(--ink-faint);font-size:13px;padding:20px 0;}
+
+  .filters{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px;
+  }
+  .filters select, .filters input[type=text]{width:auto;min-width:120px;padding:6px 8px;font-size:12.5px;}
+  .filters .search{flex:1;min-width:160px;}
+  .chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{
+    border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-soft);border-radius:999px;
+    padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;
+  }
+  .chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+  .person-grid{display:flex;flex-direction:column;gap:8px;}
+  .person-row{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:13px 16px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit;
+    transition:border-color .12s ease;
+  }
+  .person-row:hover{border-color:var(--ink-faint);}
+  .person-id{display:flex;align-items:center;gap:10px;min-width:160px;}
+  .person-id .av{
+    width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    font-weight:800;font-size:12.5px;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--accent-soft-line);flex:none;
+  }
+  .person-name{font-weight:700;font-size:14px;}
+  .status-chip{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;letter-spacing:.01em;}
+  .status-chip.behind{background:var(--bad-soft);color:var(--bad);}
+  .status-chip.ontrack{background:var(--good-soft);color:var(--good);}
+  .person-stats{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap;}
+  .person-stats .pstat{display:flex;flex-direction:column;align-items:flex-end;min-width:48px;}
+  .person-stats .pstat .n{font-family:var(--font-display);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;line-height:1.1;}
+  .person-stats .pstat.bad .n{color:var(--bad);}
+  .person-stats .pstat.good .n{color:var(--good);}
+  .person-stats .pstat .l{font-size:9.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
+  .chevron{color:var(--ink-faint);flex:none;}
+  @media (max-width:560px){
+    .person-row{flex-direction:column;align-items:stretch;}
+    .person-stats{margin-left:0;justify-content:space-between;width:100%;}
+    .chevron{display:none;}
+  }
+
+  .site-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+  .site-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .site-card .name{font-family:var(--font-display);font-weight:700;font-size:15px;}
+  .site-card .url{font-family:var(--font-mono);font-size:12px;color:var(--accent);word-break:break-all;text-decoration:none;}
+  .site-card .url:hover{text-decoration:underline;}
+  .site-card .counts{display:flex;gap:14px;margin-top:2px;}
+  .site-card .counts div{display:flex;flex-direction:column;}
+  .site-card .counts .n{font-family:var(--font-display);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;}
+  .site-card .counts .l{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;}
+  .site-card .row-actions{display:flex;gap:6px;margin-top:auto;padding-top:4px;}
+  .add-card{
+    border:1.5px dashed var(--line-strong);border-radius:var(--radius);
+    display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--ink-soft);
+    background:transparent;cursor:pointer;font-weight:700;font-size:13.5px;gap:8px;
+  }
+  .add-card:hover{border-color:var(--accent);color:var(--accent);}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(10,12,16,0.45);backdrop-filter:blur(2px);
+    display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px 40px;z-index:100;
+  }
+  .overlay[hidden]{display:none;}
+  .modal{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+    width:100%;max-width:440px;padding:22px;
+  }
+  .modal h3{font-size:16px;margin-bottom:16px;}
+  .form-grid{display:flex;flex-direction:column;gap:12px;}
+  .form-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+  #toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;}
+  .toast{
+    background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;
+    box-shadow:var(--shadow); animation:toastin .18s ease;
+  }
+  @keyframes toastin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .login-gate{
+    position:fixed;inset:0;z-index:500;background:var(--paper);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .login-card{
+    width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow);padding:28px 26px;
+  }
+  .login-card .mark{
+    width:38px;height:38px;border-radius:10px;background:var(--accent);color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:17px;margin-bottom:14px;
+  }
+  .login-card h1{font-size:19px;margin-bottom:4px;}
+  .login-card .lead{font-size:13px;color:var(--ink-soft);margin:0 0 18px;line-height:1.5;}
+  .login-card .hint-small{font-size:11.5px;color:var(--ink-faint);margin-top:4px;}
+  .login-card .form-grid{gap:14px;}
+  .login-error{color:var(--bad);font-size:12.5px;font-weight:600;background:var(--bad-soft);border-radius:7px;padding:8px 10px;}
+  .login-error[hidden]{display:none;}
+  .login-step[hidden]{display:none;}
+  .login-back{background:none;border:none;color:var(--ink-soft);font-size:12.5px;font-weight:600;cursor:pointer;padding:0;margin-bottom:2px;text-align:left;}
+
+  .role-badge{
+    font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;
+    padding:2px 7px;border-radius:999px;margin-left:2px;
+  }
+  .role-badge.admin{background:var(--accent-soft);color:var(--accent);}
+  .role-badge.member{background:var(--surface-2);color:var(--ink-soft);}
+  .profile-pop{
+    position:absolute;right:0;top:calc(100% + 8px);
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px;width:230px;z-index:40;
+  }
+  .profile-pop .who{font-weight:700;font-size:13.5px;margin-bottom:2px;}
+  .profile-pop .email{font-size:12px;color:var(--ink-soft);word-break:break-all;margin-bottom:12px;}
+
+  .admin-panel{ margin-top:28px;padding-top:20px;border-top:1px solid var(--line); }
+  .admin-panel h3{font-size:13.5px;margin-bottom:10px;}
+  .admin-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+  .admin-row{
+    display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-size:12.5px;
+  }
+  .admin-row .email{flex:1;font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);word-break:break-all;}
+  .admin-add-row{display:flex;gap:8px;}
+  .admin-add-row input{flex:1;}
+
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+  @media (max-width:560px){
+    .task{grid-template-columns:auto 1fr;}
+    .task-actions{grid-column:2 / 3; justify-content:flex-start; margin-top:6px;}
+    .form-row2{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top">
+    <div class="top-inner">
+      <div class="brand">
+        <span class="mark">DE</span>
+        <div class="brand-text">
+          <span class="name">Werknemersportaal</span>
+          <span class="sub">Deekman Enterprises</span>
+        </div>
+      </div>
+      <button class="btn primary" id="btn-new-task">+ Taak</button>
+      <div class="whoami" id="whoami-root">
+        <button class="whoami-btn" id="whoami-btn">
+          <span class="avatar" id="whoami-avatar">?</span>
+          <span id="whoami-label">&nbsp;</span>
+        </button>
+      </div>
+    </div>
+    <div class="wrap">
+      <nav class="tabs" id="tabs">
+        <button data-tab="today" class="active">Vandaag<span class="count" id="count-today">0</span></button>
+        <button data-tab="all">Alle taken<span class="count" id="count-all">0</span></button>
+        <button data-tab="team">Team<span class="count" id="count-team">0</span></button>
+        <button data-tab="sites">Websites<span class="count" id="count-sites">0</span></button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <main>
+      <div id="banner-slot"></div>
+      <section class="stats">
+        <div class="stat"><span class="num" id="stat-open">0</span><span class="lbl">Openstaande taken</span></div>
+        <div class="stat"><span class="num" id="stat-today">0</span><span class="lbl">Voor jou vandaag</span></div>
+        <div class="stat warn"><span class="num" id="stat-overdue">0</span><span class="lbl">Achterstallig</span></div>
+        <div class="stat"><span class="num" id="stat-sites">0</span><span class="lbl">Actieve websites</span></div>
+      </section>
+      <div id="view-today" class="view"></div>
+      <div id="view-all" class="view" hidden></div>
+      <div id="view-team" class="view" hidden></div>
+      <div id="view-sites" class="view" hidden></div>
+    </main>
+  </div>
+</div>
+
+<div class="overlay" id="task-overlay" hidden>
+  <div class="modal">
+    <h3 id="task-modal-title">Nieuwe taak</h3>
+    <form id="task-form" class="form-grid">
+      <input type="hidden" id="task-id">
+      <label class="field">Website<select id="task-website"></select></label>
+      <label class="field">Categorie
+        <select id="task-category">
+          <option value="seo">SEO</option>
+          <option value="sea">SEA</option>
+          <option value="content">Content &amp; Social</option>
+          <option value="tech">Techniek &amp; onderhoud</option>
+        </select>
+      </label>
+      <label class="field">Titel<input type="text" id="task-title" placeholder="Bijv. Meta descriptions aanvullen" required></label>
+      <label class="field">Omschrijving <span style="font-weight:400;color:var(--ink-faint)">(optioneel)</span>
+        <textarea id="task-desc" placeholder="Extra details voor wie de taak oppakt"></textarea>
+      </label>
+      <div class="form-row2">
+        <label class="field">Toegewezen aan
+          <input type="text" id="task-assignee" list="assignee-list" placeholder="Naam collega" required>
+          <datalist id="assignee-list"></datalist>
+        </label>
+        <label class="field">Deadline <span style="font-weight:400;color:var(--ink-faint)">(optioneel)</span>
+          <input type="date" id="task-due">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="task-cancel">Annuleren</button>
+        <button type="submit" class="btn primary" id="task-submit">Taak opslaan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="site-overlay" hidden>
+  <div class="modal">
+    <h3>Website toevoegen</h3>
+    <form id="site-form" class="form-grid">
+      <label class="field">Naam<input type="text" id="site-name" placeholder="Bijv. Deekman Makelaardij" required></label>
+      <label class="field">URL<input type="text" id="site-url" placeholder="www.voorbeeld.nl" required></label>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="site-cancel">Annuleren</button>
+        <button type="submit" class="btn primary">Toevoegen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="login-gate" id="login-gate" hidden>
+  <div class="login-card">
+    <span class="mark">DE</span>
+    <h1>Welkom</h1>
+    <p class="lead">Werknemersportaal Deekman Enterprises. Log in met je echte e-mailadres — we sturen je een inlogcode.</p>
+
+    <form id="login-step1" class="form-grid login-step">
+      <label class="field">Naam
+        <input type="text" id="login-name" placeholder="Bijv. Sanne de Vries" required autocomplete="name">
+        <span class="hint-small">Gebruik dezelfde naam waarmee taken aan je worden toegewezen.</span>
+      </label>
+      <label class="field">E-mailadres
+        <input type="email" id="login-email" placeholder="jij@deekmanenterprises.com" required autocomplete="email">
+      </label>
+      <div class="login-error" id="login-error-1" hidden></div>
+      <button type="submit" class="btn primary wide" id="login-send-btn">Stuur inlogcode</button>
+    </form>
+
+    <form id="login-step2" class="form-grid login-step" hidden>
+      <button type="button" class="login-back" id="login-back-btn">&larr; Ander e-mailadres</button>
+      <p class="hint-small" id="login-sent-to" style="margin:0 0 4px;"></p>
+      <label class="field">Inlogcode
+        <input type="text" id="login-code" placeholder="6-cijferige code" inputmode="numeric" autocomplete="one-time-code" required>
+        <span class="hint-small">Staat in de e-mail die we net stuurden. Je kunt ook direct op de link in die e-mail klikken.</span>
+      </label>
+      <div class="login-error" id="login-error-2" hidden></div>
+      <button type="submit" class="btn primary wide" id="login-verify-btn">Bevestigen</button>
+    </form>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SUPABASE_URL = "https://jvyynqiqsybjqjcquulw.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_kw7ZPjMTlmz8XXWpQv4p7g_Jkyo3B4c";
+  var OWNER_EMAIL = "thomasdeekman@gmail.com";
+
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  var CATS = {
+    seo:     { label:"SEO",                 cls:"cat-seo" },
+    sea:     { label:"SEA",                 cls:"cat-sea" },
+    content: { label:"Content & Social",    cls:"cat-content" },
+    tech:    { label:"Techniek & onderhoud",cls:"cat-tech" }
+  };
+
+  var state = {
+    session: null,
+    identity: null,      // {name, email} once logged in AND allowed
+    checkingAccess: false,
+    websites: [],
+    tasks: [],
+    employees: [],
+    adminEmails: [],
+    allowedDomains: [],
+    tab: "today",
+    isAdminFlag: false,
+    pendingLoginName: "",
+    filters: { website:"all", category:"all", assignee:"all", status:"open", q:"" }
+  };
+
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function pad(n){ return n<10 ? "0"+n : ""+n; }
+  function todayISO(){ var d=new Date(); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function initials(name){
+    name = (name||"").trim();
+    if(!name) return "?";
+    var parts = name.split(/\s+/);
+    return (parts[0][0]+(parts[1]?parts[1][0]:"")).toUpperCase();
+  }
+  function fmtDate(iso){
+    if(!iso) return "";
+    var parts = iso.split("-");
+    var months = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
+    return parseInt(parts[2],10)+" "+months[parseInt(parts[1],10)-1];
+  }
+  function toast(msg){
+    var el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = msg;
+    $("#toasts").appendChild(el);
+    setTimeout(function(){ el.remove(); }, 3200);
+  }
+  function currentUrl(){ return window.location.href.split("#")[0].split("?")[0]; }
+
+  /* ---------------- auth ---------------- */
+  sb.auth.onAuthStateChange(function(event, session){
+    state.session = session;
+    if(session){ afterAuthenticated(); }
+    else{ state.identity = null; state.isAdminFlag = false; renderAll(); }
+  });
+
+  function boot(){
+    sb.auth.getSession().then(function(res){
+      state.session = res.data.session;
+      if(state.session){ afterAuthenticated(); } else { renderAll(); }
+    });
+  }
+
+  function afterAuthenticated(){
+    if(state.checkingAccess) return;
+    state.checkingAccess = true;
+    var user = state.session.user;
+    var email = (user.email || "").toLowerCase();
+    sb.rpc("is_allowed").then(function(res){
+      state.checkingAccess = false;
+      if(res.error){ console.error(res.error); toast("Kon toegang niet controleren."); return; }
+      if(!res.data){
+        toast("Dit e-mailadres heeft geen toegang tot dit portaal. Vraag je beheerder om toegang.");
+        sb.auth.signOut();
+        return;
+      }
+      var name = (user.user_metadata && user.user_metadata.name) || state.pendingLoginName || email;
+      state.identity = { name: name, email: email };
+      if(state.pendingLoginName && state.pendingLoginName !== (user.user_metadata && user.user_metadata.name)){
+        sb.auth.updateUser({ data: { name: state.pendingLoginName } });
+      }
+      sb.rpc("is_admin").then(function(r2){
+        state.isAdminFlag = !!(r2.data);
+        renderAll();
+      });
+      loadAll();
+      subscribeRealtime();
+      renderAll();
+    });
+  }
+
+  function isAdmin(){ return state.isAdminFlag; }
+
+  function logout(){ sb.auth.signOut(); }
+
+  /* ---------------- data loading ---------------- */
+  var subscribed = false;
+  function subscribeRealtime(){
+    if(subscribed) return;
+    subscribed = true;
+    ["websites","tasks","employees","admins","allowed_domains"].forEach(function(table){
+      sb.channel("public:"+table)
+        .on("postgres_changes", { event:"*", schema:"public", table:table }, function(){ loadTable(table); })
+        .subscribe();
+    });
+  }
+
+  function loadTable(table){
+    if(table === "websites") return loadWebsites();
+    if(table === "tasks") return loadTasks();
+    if(table === "employees") return loadEmployees();
+    if(table === "admins") return loadAdmins();
+    if(table === "allowed_domains") return loadDomains();
+  }
+
+  function loadAll(){
+    loadWebsites(); loadTasks(); loadEmployees(); loadAdmins(); loadDomains();
+  }
+
+  function loadWebsites(){
+    sb.from("websites").select("*").order("name").then(function(res){
+      if(res.error){ console.error(res.error); return; }
+      state.websites = res.data || [];
+      renderAll();
+    });
+  }
+  function loadTasks(){
+    sb.from("tasks").select("*").then(function(res){
+      if(res.error){ console.error(res.error); return; }
+      state.tasks = res.data || [];
+      renderAll();
+    });
+  }
+  function loadEmployees(){
+    sb.from("employees").select("*").order("name").then(function(res){
+      if(res.error){ console.error(res.error); return; }
+      state.employees = res.data || [];
+      renderAll();
+    });
+  }
+  function loadAdmins(){
+    sb.from("admins").select("email").order("email").then(function(res){
+      if(res.error){ console.error(res.error); return; }
+      state.adminEmails = (res.data || []).map(function(r){ return r.email; });
+      renderAll();
+    });
+  }
+  function loadDomains(){
+    sb.from("allowed_domains").select("domain").order("domain").then(function(res){
+      if(res.error){ console.error(res.error); return; }
+      state.allowedDomains = (res.data || []).map(function(r){ return r.domain; });
+      renderAll();
+    });
+  }
+
+  /* ---------------- derived data ---------------- */
+  function siteName(id){
+    var s = state.websites.filter(function(w){ return w.id === id; })[0];
+    return s ? s.name : null;
+  }
+  function openTasks(){ return state.tasks.filter(function(t){ return t.status !== "done"; }); }
+  function isOverdue(t){ return t.due_date && t.due_date < todayISO() && t.status !== "done"; }
+  function isDueToday(t){ return t.due_date === todayISO() && t.status !== "done"; }
+  function assigneeList(){
+    var set = {};
+    state.tasks.forEach(function(t){ if(t.assignee) set[t.assignee] = true; });
+    state.employees.forEach(function(e){ if(e.name) set[e.name] = true; });
+    return Object.keys(set).sort(function(a,b){ return a.localeCompare(b); });
+  }
+  function teamStats(){
+    var map = {};
+    var weekAgo = Date.now() - 7*24*60*60*1000;
+    state.tasks.forEach(function(t){
+      var name = t.assignee || "Niet toegewezen";
+      if(!map[name]) map[name] = { name:name, open:0, overdue:0, today:0, doneWeek:0 };
+      if(t.status !== "done"){
+        map[name].open++;
+        if(isOverdue(t)) map[name].overdue++;
+        if(isDueToday(t)) map[name].today++;
+      } else if(t.completed_at && Date.parse(t.completed_at) >= weekAgo){
+        map[name].doneWeek++;
+      }
+    });
+    return Object.keys(map).map(function(k){ return map[k]; }).sort(function(a,b){
+      if(b.overdue !== a.overdue) return b.overdue - a.overdue;
+      if(b.open !== a.open) return b.open - a.open;
+      return a.name.localeCompare(b.name);
+    });
+  }
+  function myTodayTasks(){
+    if(!state.identity) return [];
+    var myName = state.identity.name;
+    var today = todayISO();
+    return state.tasks.filter(function(t){
+      return t.status !== "done" &&
+        (t.assignee||"").toLowerCase() === myName.toLowerCase() &&
+        (!t.due_date || t.due_date <= today);
+    }).sort(function(a,b){
+      var da = a.due_date || "9999-99-99", db_ = b.due_date || "9999-99-99";
+      if(da !== db_) return da < db_ ? -1 : 1;
+      return (a.title||"").localeCompare(b.title||"");
+    });
+  }
+
+  /* ---------------- rendering ---------------- */
+  function renderAll(){
+    renderGate();
+    if(!state.identity) return;
+    updateTabVisibility();
+    renderCounts();
+    renderStats();
+    renderProfileChip();
+    if(state.tab === "today") renderToday();
+    if(state.tab === "all") renderAllTasks();
+    if(state.tab === "team") renderTeam();
+    if(state.tab === "sites") renderSites();
+    refreshTaskFormSelectors();
+  }
+
+  function renderGate(){ $("#login-gate").hidden = !!state.identity; }
+
+  function updateTabVisibility(){
+    var teamBtn = document.querySelector('#tabs button[data-tab="team"]');
+    if(teamBtn) teamBtn.hidden = !isAdmin();
+    if(state.tab === "team" && !isAdmin()) switchTab("today");
+  }
+
+  function renderCounts(){
+    $("#count-today").textContent = myTodayTasks().length;
+    $("#count-all").textContent = openTasks().length;
+    $("#count-team").textContent = assigneeList().length;
+    $("#count-sites").textContent = state.websites.length;
+  }
+  function renderStats(){
+    $("#stat-open").textContent = openTasks().length;
+    $("#stat-today").textContent = myTodayTasks().length;
+    $("#stat-overdue").textContent = state.tasks.filter(isOverdue).length;
+    $("#stat-sites").textContent = state.websites.length;
+  }
+  function renderProfileChip(){
+    if(!state.identity) return;
+    $("#whoami-avatar").textContent = initials(state.identity.name);
+    $("#whoami-label").innerHTML = esc(state.identity.name) +
+      '<span class="role-badge '+(isAdmin()?"admin":"member")+'">'+(isAdmin()?"Beheerder":"Medewerker")+'</span>';
+  }
+
+  function taskRow(t, opts){
+    opts = opts || {};
+    var cat = CATS[t.category] || CATS.tech;
+    var dueCls = isOverdue(t) ? "overdue" : (isDueToday(t) ? "today" : "");
+    var dueLabel = t.due_date ? (isOverdue(t) ? "Verlopen · " + fmtDate(t.due_date) : fmtDate(t.due_date)) : "";
+    var site = t.website_name || siteName(t.website_id) || "Algemeen";
+    return (
+      '<div class="task '+(t.status==="done"?"done":"")+'" data-id="'+t.id+'">' +
+        '<button class="check '+(t.status==="done"?"on":"")+'" data-action="toggle" data-id="'+t.id+'" aria-label="Markeer als afgerond">' +
+          '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 11.5L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</button>' +
+        '<div class="task-main">' +
+          '<div class="task-top">' +
+            '<span class="badge '+cat.cls+'">'+cat.label+'</span>' +
+            (opts.hideSite ? "" : '<span class="site-tag">'+esc(site)+'</span>') +
+          '</div>' +
+          '<div class="title">'+esc(t.title)+'</div>' +
+          (t.description ? '<div class="desc">'+esc(t.description)+'</div>' : "") +
+          '<div class="task-meta">' +
+            '<span class="assignee"><span class="av">'+initials(t.assignee)+'</span>'+esc(t.assignee||"Niet toegewezen")+'</span>' +
+            (t.due_date ? '<span class="due '+dueCls+'">'+dueLabel+'</span>' : '<span class="due">Geen deadline</span>') +
+          '</div>' +
+        '</div>' +
+        '<div class="task-actions">' +
+          '<button class="icon-btn" data-action="edit" data-id="'+t.id+'" aria-label="Bewerken" title="Bewerken">' +
+            '<svg viewBox="0 0 20 20" fill="none"><path d="M13.5 3.5l3 3L7 16l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>' +
+          '</button>' +
+          '<button class="icon-btn" data-action="delete" data-id="'+t.id+'" aria-label="Verwijderen" title="Verwijderen">' +
+            '<svg viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8.5 6V4.5h3V6M6 6l.6 10h6.8L14 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderToday(){
+    var root = $("#view-today");
+    var mine = myTodayTasks();
+    var overdue = mine.filter(isOverdue);
+    var today = mine.filter(function(t){ return !isOverdue(t) && t.due_date === todayISO(); });
+    var nodate = mine.filter(function(t){ return !t.due_date; });
+    if(mine.length === 0){
+      root.innerHTML =
+        '<div class="empty"><div class="big">✨</div>' +
+          '<h3 style="margin-bottom:4px;">Niks openstaand voor jou</h3>' +
+          '<p>Alle taken toegewezen aan '+esc(state.identity.name)+' zijn afgerond of pas later gepland.</p>' +
+          '<button class="btn primary" id="empty-new-task">+ Nieuwe taak</button></div>';
+      var nb = $("#empty-new-task"); if(nb) nb.addEventListener("click", function(){ openTaskModal(); });
+      return;
+    }
+    var html = "";
+    if(overdue.length){
+      html += '<div class="group-head"><span class="dot" style="background:var(--bad)"></span>Achterstallig</div>';
+      html += '<div class="tasklist">' + overdue.map(function(t){ return taskRow(t); }).join("") + '</div>';
+    }
+    if(today.length){
+      html += '<div class="group-head"><span class="dot" style="background:var(--accent)"></span>Vandaag</div>';
+      html += '<div class="tasklist">' + today.map(function(t){ return taskRow(t); }).join("") + '</div>';
+    }
+    if(nodate.length){
+      html += '<div class="group-head">Zonder deadline</div>';
+      html += '<div class="tasklist">' + nodate.map(function(t){ return taskRow(t); }).join("") + '</div>';
+    }
+    root.innerHTML = html;
+  }
+
+  function renderAllTasks(){
+    var root = $("#view-all");
+    var f = state.filters;
+    var assignees = assigneeList();
+    var filterBar =
+      '<div class="filters">' +
+        '<select id="f-website"><option value="all">Alle websites</option>' +
+          state.websites.map(function(w){ return '<option value="'+w.id+'" '+(f.website===w.id?"selected":"")+'>'+esc(w.name)+'</option>'; }).join("") +
+        '</select>' +
+        '<select id="f-category"><option value="all">Alle categorieën</option>' +
+          Object.keys(CATS).map(function(k){ return '<option value="'+k+'" '+(f.category===k?"selected":"")+'>'+CATS[k].label+'</option>'; }).join("") +
+        '</select>' +
+        '<select id="f-assignee"><option value="all">Iedereen</option>' +
+          assignees.map(function(a){ return '<option value="'+esc(a)+'" '+(f.assignee===a?"selected":"")+'>'+esc(a)+'</option>'; }).join("") +
+        '</select>' +
+        '<div class="chip-row">' +
+          ['open','done','alle'].map(function(s){
+            var lbl = s==='open'?'Open':(s==='done'?'Afgerond':'Alle');
+            return '<button type="button" class="chip '+(f.status===s?"active":"")+'" data-status="'+s+'">'+lbl+'</button>';
+          }).join("") +
+        '</div>' +
+        '<input type="text" class="search" id="f-search" placeholder="Zoeken in taken&hellip;" value="'+esc(f.q)+'">' +
+      '</div>';
+    var filtered = state.tasks.filter(function(t){
+      if(f.website !== "all" && t.website_id !== f.website) return false;
+      if(f.category !== "all" && t.category !== f.category) return false;
+      if(f.assignee !== "all" && t.assignee !== f.assignee) return false;
+      if(f.status === "open" && t.status === "done") return false;
+      if(f.status === "done" && t.status !== "done") return false;
+      if(f.q){
+        var q = f.q.toLowerCase();
+        if((t.title||"").toLowerCase().indexOf(q) === -1 && (t.description||"").toLowerCase().indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    filtered.sort(function(a,b){
+      if((a.status==="done") !== (b.status==="done")) return a.status==="done" ? 1 : -1;
+      var da = a.due_date || "9999-99-99", db_ = b.due_date || "9999-99-99";
+      if(da !== db_) return da < db_ ? -1 : 1;
+      return (a.title||"").localeCompare(b.title||"");
+    });
+    var listHtml = filtered.length === 0
+      ? '<div class="empty"><div class="big">📭</div><p>Geen taken gevonden met deze filters.</p></div>'
+      : '<div class="tasklist">' + filtered.map(function(t){ return taskRow(t); }).join("") + '</div>';
+    root.innerHTML = filterBar + listHtml;
+    $("#f-website").addEventListener("change", function(e){ state.filters.website = e.target.value; renderAllTasks(); });
+    $("#f-category").addEventListener("change", function(e){ state.filters.category = e.target.value; renderAllTasks(); });
+    $("#f-assignee").addEventListener("change", function(e){ state.filters.assignee = e.target.value; renderAllTasks(); });
+    $("#f-search").addEventListener("input", function(e){ state.filters.q = e.target.value; renderAllTasks(); });
+    $all(".chip", root).forEach(function(c){ c.addEventListener("click", function(){ state.filters.status = c.getAttribute("data-status"); renderAllTasks(); }); });
+  }
+
+  function domainsPanelHtml(){
+    return (
+      '<div class="admin-panel"><h3>Toegestane e-maildomeinen</h3>' +
+      '<p class="desc" style="margin-bottom:10px;">Iedereen met een e-mailadres op een van deze domeinen mag een inlogcode aanvragen (naast '+esc(OWNER_EMAIL)+', die altijd toegang houdt).</p>' +
+      '<div class="admin-list">' +
+        (state.allowedDomains.length === 0
+          ? '<div class="hint-small">Nog geen domeinen toegevoegd.</div>'
+          : state.allowedDomains.map(function(d){
+              return '<div class="admin-row"><span class="email">'+esc(d)+'</span>' +
+                '<button type="button" class="icon-btn" data-action="remove-domain" data-domain="'+esc(d)+'" title="Verwijderen" aria-label="Verwijderen">' +
+                '<svg viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8.5 6V4.5h3V6M6 6l.6 10h6.8L14 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
+            }).join("")) +
+      '</div>' +
+      '<form id="domain-add-form" class="admin-add-row"><input type="text" id="domain-add-value" placeholder="@bedrijfsnaam.nl" required><button type="submit" class="btn small">Toevoegen</button></form></div>'
+    );
+  }
+  function employeesPanelHtml(){
+    return (
+      '<div class="admin-panel"><h3>Medewerkers</h3>' +
+      '<p class="desc" style="margin-bottom:10px;">Voor collega\'s buiten je toegestane domeinen — zij mogen dan ook een inlogcode aanvragen met hun eigen adres.</p>' +
+      '<div class="admin-list">' +
+        (state.employees.length === 0
+          ? '<div class="hint-small">Nog geen medewerkers toegevoegd.</div>'
+          : state.employees.map(function(emp){
+              return '<div class="admin-row"><span style="font-weight:600;min-width:110px;">'+esc(emp.name)+'</span><span class="email">'+esc(emp.email)+'</span>' +
+                '<button type="button" class="icon-btn" data-action="remove-employee" data-id="'+emp.id+'" title="Verwijderen" aria-label="Verwijderen">' +
+                '<svg viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8.5 6V4.5h3V6M6 6l.6 10h6.8L14 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
+            }).join("")) +
+      '</div>' +
+      '<form id="employee-add-form" class="admin-add-row">' +
+        '<input type="text" id="employee-add-name" placeholder="Naam" required style="flex:0 0 130px;">' +
+        '<input type="email" id="employee-add-email" placeholder="naam@voorbeeld.nl" required>' +
+        '<button type="submit" class="btn small">Toevoegen</button></form></div>'
+    );
+  }
+  function adminPanelHtml(){
+    return (
+      '<div class="admin-panel"><h3>Beheerders</h3>' +
+      '<p class="desc" style="margin-bottom:10px;">Beheerders zien dit Team-overzicht; medewerkers zien alleen hun eigen taken.</p>' +
+      '<div class="admin-list">' +
+        state.adminEmails.map(function(mail){
+          return '<div class="admin-row"><span class="email">'+esc(mail)+'</span>' +
+            '<button type="button" class="icon-btn" data-action="remove-admin" data-mail="'+esc(mail)+'" title="Verwijderen" aria-label="Verwijderen">' +
+            '<svg viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8.5 6V4.5h3V6M6 6l.6 10h6.8L14 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
+        }).join("") +
+      '</div>' +
+      '<form id="admin-add-form" class="admin-add-row"><input type="email" id="admin-add-email" placeholder="collega@deekmanenterprises.com" required><button type="submit" class="btn small">Toevoegen</button></form></div>'
+    );
+  }
+
+  function renderTeam(){
+    var root = $("#view-team");
+    var rows = teamStats();
+    var body;
+    if(rows.length === 0){
+      body = '<div class="empty"><div class="big">🧑‍💻</div><p>Nog geen taken toegewezen aan collega’s.</p><button class="btn primary" id="team-new-task">+ Nieuwe taak</button></div>';
+    } else {
+      body = '<div class="section-head"><h2>Wie doet wat</h2><span class="hint">Gesorteerd op wie het meest achterloopt &middot; klik voor details</span></div><div class="person-grid">' +
+        rows.map(function(p){
+          var behind = p.overdue > 0;
+          return (
+            '<button type="button" class="person-row" data-action="filter-person" data-name="'+esc(p.name)+'">' +
+              '<div class="person-id"><span class="av">'+initials(p.name)+'</span><span class="person-name">'+esc(p.name)+'</span></div>' +
+              '<span class="status-chip '+(behind?"behind":"ontrack")+'">'+(behind?"Loopt achter":"Op schema")+'</span>' +
+              '<div class="person-stats">' +
+                '<div class="pstat"><span class="n">'+p.open+'</span><span class="l">Open</span></div>' +
+                '<div class="pstat '+(p.overdue>0?"bad":"")+'"><span class="n">'+p.overdue+'</span><span class="l">Achterstallig</span></div>' +
+                '<div class="pstat"><span class="n">'+p.today+'</span><span class="l">Vandaag</span></div>' +
+                '<div class="pstat good"><span class="n">'+p.doneWeek+'</span><span class="l">Afgerond 7d</span></div>' +
+              '</div>' +
+              '<svg class="chevron" viewBox="0 0 20 20" width="16" height="16" fill="none"><path d="M7.5 4.5l6 5.5-6 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            '</button>'
+          );
+        }).join("") + '</div>';
+    }
+    root.innerHTML = body + domainsPanelHtml() + employeesPanelHtml() + adminPanelHtml();
+    var b = $("#team-new-task"); if(b) b.addEventListener("click", function(){ openTaskModal(); });
+    bindDomainsPanel(); bindEmployeesPanel(); bindAdminPanel();
+  }
+
+  function bindDomainsPanel(){
+    var form = $("#domain-add-form");
+    if(form) form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var raw = ($("#domain-add-value").value || "").trim().toLowerCase();
+      if(!raw) return;
+      if(raw.charAt(0) !== "@") raw = "@" + raw;
+      if(raw.indexOf(".") === -1 || raw.length < 4){ toast("Vul een geldig domein in, bijv. @bedrijfsnaam.nl"); return; }
+      sb.from("allowed_domains").insert({ domain: raw, added_by: state.identity.email }).then(function(res){
+        if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
+        toast("Domein toegevoegd");
+      });
+    });
+  }
+  function bindEmployeesPanel(){
+    var form = $("#employee-add-form");
+    if(form) form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var name = ($("#employee-add-name").value || "").trim();
+      var mail = ($("#employee-add-email").value || "").trim().toLowerCase();
+      if(!name || !mail) return;
+      sb.from("employees").insert({ name:name, email:mail, added_by: state.identity.email }).then(function(res){
+        if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
+        toast("Medewerker toegevoegd");
+      });
+    });
+  }
+  function bindAdminPanel(){
+    var form = $("#admin-add-form");
+    if(form) form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var mail = ($("#admin-add-email").value || "").trim().toLowerCase();
+      if(!mail) return;
+      sb.from("admins").insert({ email:mail, added_by: state.identity.email }).then(function(res){
+        if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
+        toast("Beheerder toegevoegd");
+      });
+    });
+  }
+
+  function renderSites(){
+    var root = $("#view-sites");
+    var cards = state.websites.map(function(w){
+      var wt = state.tasks.filter(function(t){ return t.website_id === w.id; });
+      var open = wt.filter(function(t){ return t.status !== "done"; }).length;
+      return (
+        '<div class="site-card"><div><div class="name">'+esc(w.name)+'</div>' +
+          '<a class="url" href="'+esc(normalizeUrl(w.url))+'" target="_blank" rel="noopener">'+esc(w.url)+'</a></div>' +
+          '<div class="counts"><div><span class="n">'+open+'</span><span class="l">Open</span></div><div><span class="n">'+wt.length+'</span><span class="l">Totaal</span></div></div>' +
+          '<div class="row-actions"><button class="btn small" data-action="filter-site" data-id="'+w.id+'">Bekijk taken</button>' +
+          '<button class="icon-btn" data-action="delete-site" data-id="'+w.id+'" aria-label="Verwijderen" title="Verwijderen">' +
+          '<svg viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8.5 6V4.5h3V6M6 6l.6 10h6.8L14 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>'
+      );
+    }).join("");
+    root.innerHTML = '<div class="site-grid">' + cards + '<button class="add-card" id="add-site-card">+ Website toevoegen</button></div>';
+    $("#add-site-card").addEventListener("click", openSiteModal);
+  }
+  function normalizeUrl(u){ if(!u) return "#"; return /^https?:\/\//i.test(u) ? u : "https://" + u; }
+
+  function refreshTaskFormSelectors(){
+    var sel = $("#task-website");
+    if(sel){
+      var current = sel.value;
+      sel.innerHTML = state.websites.length
+        ? state.websites.map(function(w){ return '<option value="'+w.id+'">'+esc(w.name)+'</option>'; }).join("")
+        : '<option value="">Voeg eerst een website toe</option>';
+      if(current) sel.value = current;
+    }
+    var dl = $("#assignee-list");
+    if(dl) dl.innerHTML = assigneeList().map(function(a){ return '<option value="'+esc(a)+'">'; }).join("");
+  }
+
+  /* ---------------- interactions ---------------- */
+  document.addEventListener("click", function(e){
+    var t = e.target.closest("[data-action]");
+    if(!t) return;
+    var action = t.getAttribute("data-action");
+    var id = t.getAttribute("data-id");
+    if(action === "toggle") toggleTask(id);
+    if(action === "edit") openTaskModal(id);
+    if(action === "delete") deleteTask(id);
+    if(action === "delete-site") deleteSite(id);
+    if(action === "filter-site"){ state.filters.website = id; switchTab("all"); }
+    if(action === "filter-person"){
+      state.filters.assignee = t.getAttribute("data-name");
+      state.filters.website = "all"; state.filters.category = "all"; state.filters.status = "alle";
+      switchTab("all");
+    }
+    if(action === "remove-domain") removeDomain(t.getAttribute("data-domain"));
+    if(action === "remove-employee") removeEmployee(id);
+    if(action === "remove-admin") removeAdminEmail(t.getAttribute("data-mail"));
+  });
+
+  $("#tabs").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-tab]");
+    if(!b) return;
+    switchTab(b.getAttribute("data-tab"));
+  });
+  function switchTab(tab){
+    state.tab = tab;
+    $all("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===tab); });
+    $("#view-today").hidden = tab !== "today";
+    $("#view-all").hidden = tab !== "all";
+    $("#view-team").hidden = tab !== "team";
+    $("#view-sites").hidden = tab !== "sites";
+    renderAll();
+  }
+
+  $("#btn-new-task").addEventListener("click", function(){ openTaskModal(); });
+
+  function openProfilePop(){
+    if($("#profile-pop")) return;
+    var pop = document.createElement("div");
+    pop.className = "profile-pop"; pop.id = "profile-pop";
+    pop.innerHTML =
+      '<div class="who">'+esc(state.identity.name)+'</div>' +
+      '<div class="email">'+esc(state.identity.email)+'</div>' +
+      '<button class="btn ghost small" id="logout-btn" style="width:100%;justify-content:center;">Uitloggen</button>';
+    $("#whoami-root").appendChild(pop);
+    $("#logout-btn").addEventListener("click", logout);
+    setTimeout(function(){ document.addEventListener("click", outsideProfilePop); }, 0);
+  }
+  function outsideProfilePop(e){
+    var pop = $("#profile-pop");
+    if(pop && !pop.contains(e.target) && e.target.id !== "whoami-btn"){
+      pop.remove(); document.removeEventListener("click", outsideProfilePop);
+    }
+  }
+  $("#whoami-btn").addEventListener("click", function(e){ e.stopPropagation(); openProfilePop(); });
+
+  /* login flow */
+  $("#login-step1").addEventListener("submit", function(e){
+    e.preventDefault();
+    var name = ($("#login-name").value || "").trim();
+    var email = ($("#login-email").value || "").trim().toLowerCase();
+    var errBox = $("#login-error-1");
+    errBox.hidden = true;
+    if(!name || !email) return;
+    var btn = $("#login-send-btn"); btn.disabled = true; btn.textContent = "Versturen…";
+    sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: currentUrl() } }).then(function(res){
+      btn.disabled = false; btn.textContent = "Stuur inlogcode";
+      if(res.error){
+        errBox.textContent = "Versturen mislukt: " + res.error.message;
+        errBox.hidden = false;
+        return;
+      }
+      state.pendingLoginName = name;
+      $("#login-sent-to").textContent = "Code verstuurd naar " + email + ".";
+      $("#login-step1").hidden = true;
+      $("#login-step2").hidden = false;
+      setTimeout(function(){ $("#login-code").focus(); }, 30);
+    });
+  });
+  $("#login-back-btn").addEventListener("click", function(){
+    $("#login-step2").hidden = true;
+    $("#login-step1").hidden = false;
+    $("#login-error-2").hidden = true;
+  });
+  $("#login-step2").addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = ($("#login-email").value || "").trim().toLowerCase();
+    var code = ($("#login-code").value || "").trim();
+    var errBox = $("#login-error-2");
+    errBox.hidden = true;
+    if(!code) return;
+    var btn = $("#login-verify-btn"); btn.disabled = true; btn.textContent = "Bezig…";
+    sb.auth.verifyOtp({ email: email, token: code, type: "email" }).then(function(res){
+      btn.disabled = false; btn.textContent = "Bevestigen";
+      if(res.error){
+        errBox.textContent = "Onjuiste of verlopen code. Probeer opnieuw of vraag een nieuwe code aan.";
+        errBox.hidden = false;
+        return;
+      }
+      // onAuthStateChange fires afterAuthenticated(); reset the form for next time
+      $("#login-step1").hidden = false;
+      $("#login-step2").hidden = true;
+      $("#login-step1").reset();
+      $("#login-step2").reset();
+    });
+  });
+
+  /* task modal */
+  function openTaskModal(id){
+    if(state.websites.length === 0){ toast("Voeg eerst een website toe voordat je een taak aanmaakt."); openSiteModal(); return; }
+    var editing = id ? state.tasks.filter(function(t){ return t.id === id; })[0] : null;
+    $("#task-modal-title").textContent = editing ? "Taak bewerken" : "Nieuwe taak";
+    $("#task-submit").textContent = editing ? "Wijzigingen opslaan" : "Taak opslaan";
+    $("#task-id").value = editing ? editing.id : "";
+    refreshTaskFormSelectors();
+    $("#task-website").value = editing ? editing.website_id : state.websites[0].id;
+    $("#task-category").value = editing ? editing.category : "seo";
+    $("#task-title").value = editing ? editing.title : "";
+    $("#task-desc").value = editing ? (editing.description||"") : "";
+    $("#task-assignee").value = editing ? editing.assignee : state.identity.name;
+    $("#task-due").value = editing ? (editing.due_date||"") : "";
+    $("#task-overlay").hidden = false;
+    setTimeout(function(){ $("#task-title").focus(); }, 30);
+  }
+  function closeTaskModal(){ $("#task-overlay").hidden = true; $("#task-form").reset(); }
+  $("#task-cancel").addEventListener("click", closeTaskModal);
+  $("#task-overlay").addEventListener("click", function(e){ if(e.target === this) closeTaskModal(); });
+
+  $("#task-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var id = $("#task-id").value;
+    var websiteId = $("#task-website").value;
+    var website = state.websites.filter(function(w){ return w.id === websiteId; })[0];
+    var payload = {
+      website_id: websiteId,
+      website_name: website ? website.name : "",
+      category: $("#task-category").value,
+      title: $("#task-title").value.trim(),
+      description: $("#task-desc").value.trim(),
+      assignee: $("#task-assignee").value.trim(),
+      due_date: $("#task-due").value || null
+    };
+    if(!payload.title || !payload.assignee) return;
+    var submitBtn = $("#task-submit"); submitBtn.disabled = true;
+    var op;
+    if(id){
+      op = sb.from("tasks").update(payload).eq("id", id);
+    } else {
+      payload.status = "open";
+      payload.created_by = state.identity.email;
+      op = sb.from("tasks").insert(payload);
+    }
+    op.then(function(res){
+      submitBtn.disabled = false;
+      if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
+      toast(id ? "Taak bijgewerkt" : "Taak toegevoegd");
+      closeTaskModal();
+    });
+  });
+
+  function toggleTask(id){
+    var t = state.tasks.filter(function(x){ return x.id === id; })[0];
+    if(!t) return;
+    var next = t.status === "done" ? "open" : "done";
+    sb.from("tasks").update({ status: next, completed_at: next === "done" ? new Date().toISOString() : null }).eq("id", id)
+      .then(function(res){ if(res.error){ toast("Kon taak niet bijwerken."); } });
+  }
+  function deleteTask(id){
+    if(!confirm("Deze taak verwijderen?")) return;
+    sb.from("tasks").delete().eq("id", id).then(function(res){
+      if(res.error){ toast("Verwijderen mislukt."); return; }
+      toast("Taak verwijderd");
+    });
+  }
+
+  function openSiteModal(){ $("#site-overlay").hidden = false; setTimeout(function(){ $("#site-name").focus(); }, 30); }
+  function closeSiteModal(){ $("#site-overlay").hidden = true; $("#site-form").reset(); }
+  $("#site-cancel").addEventListener("click", closeSiteModal);
+  $("#site-overlay").addEventListener("click", function(e){ if(e.target === this) closeSiteModal(); });
+  $("#site-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var payload = {
+      name: $("#site-name").value.trim(),
+      url: $("#site-url").value.trim().replace(/^https?:\/\//i,""),
+      created_by: state.identity.email
+    };
+    if(!payload.name || !payload.url) return;
+    sb.from("websites").insert(payload).then(function(res){
+      if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
+      toast("Website toegevoegd");
+      closeSiteModal();
+    });
+  });
+  function deleteSite(id){
+    var wt = state.tasks.filter(function(t){ return t.website_id === id; }).length;
+    var msg = wt > 0 ? "Deze website verwijderen? "+wt+" taak/taken blijven zichtbaar maar verliezen de website-link." : "Deze website verwijderen?";
+    if(!confirm(msg)) return;
+    sb.from("websites").delete().eq("id", id).then(function(res){
+      if(res.error){ toast("Verwijderen mislukt."); return; }
+      toast("Website verwijderd");
+    });
+  }
+
+  function removeDomain(domain){
+    if(!confirm("Domein "+domain+" verwijderen? Iedereen die alleen via dit domein toegang had, verliest die.")) return;
+    sb.from("allowed_domains").delete().eq("domain", domain).then(function(res){
+      if(res.error){ toast("Verwijderen mislukt."); return; }
+      toast("Domein verwijderd");
+    });
+  }
+  function removeEmployee(id){
+    if(!confirm("Deze medewerker verwijderen?")) return;
+    sb.from("employees").delete().eq("id", id).then(function(res){
+      if(res.error){ toast("Verwijderen mislukt."); return; }
+      toast("Medewerker verwijderd");
+    });
+  }
+  function removeAdminEmail(mail){
+    if(state.adminEmails.length <= 1 && mail.toLowerCase() !== OWNER_EMAIL){
+      // still allow removing others even if list has 1, owner is a permanent hardcoded fallback
+    }
+    if(!confirm("Beheerderstoegang voor "+mail+" intrekken?")) return;
+    sb.from("admins").delete().eq("email", mail).then(function(res){
+      if(res.error){ toast("Verwijderen mislukt."); return; }
+      toast("Beheerder verwijderd");
+    });
+  }
+
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){
+      if(!$("#task-overlay").hidden) closeTaskModal();
+      if(!$("#site-overlay").hidden) closeSiteModal();
+    }
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
