@@ -726,7 +726,7 @@
     });
   }
   function loadDomains(){
-    sb.from("allowed_domains").select("domain,company_name").order("domain").then(function(res){
+    sb.from("allowed_domains").select("domain,company_name,ai_urgent_enabled").order("domain").then(function(res){
       if(res.error){ console.error(res.error); return; }
       state.allowedDomains = res.data || [];
       renderAll();
