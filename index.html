@@ -377,7 +377,7 @@
     border-radius:8px;padding:8px 10px;font-size:12.5px;
   }
   .admin-row .email{flex:1;font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);word-break:break-all;}
-  .admin-add-row{display:flex;gap:8px;}
+  .admin-add-row{display:flex;gap:8px;flex-wrap:wrap;}
   .admin-add-row input{flex:1;}
 
   @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
@@ -394,10 +394,10 @@
   <header class="top">
     <div class="top-inner">
       <div class="brand">
-        <span class="mark">DE</span>
+        <span class="mark" id="brand-mark">DE</span>
         <div class="brand-text">
           <span class="name">Werknemersportaal</span>
-          <span class="sub">Deekman Enterprises</span>
+          <span class="sub" id="brand-sub">Deekman Enterprises</span>
         </div>
       </div>
       <button class="btn primary" id="btn-new-task">+ Taak</button>
@@ -545,6 +545,9 @@
     allowedDomains: [],
     tab: "today",
     isAdminFlag: false,
+    isSuperAdmin: false,
+    tenant: null,
+    companyName: "Deekman Enterprises",
     pendingLoginName: "",
     filters: { website:"all", category:"all", assignee:"all", status:"open", q:"" }
   };
@@ -579,7 +582,12 @@
   sb.auth.onAuthStateChange(function(event, session){
     state.session = session;
     if(session){ afterAuthenticated(); }
-    else{ state.identity = null; state.isAdminFlag = false; renderAll(); }
+    else{
+      state.identity = null; state.isAdminFlag = false; state.isSuperAdmin = false;
+      state.tenant = null; state.companyName = "Deekman Enterprises";
+      applyBranding();
+      renderAll();
+    }
   });
 
   function boot(){
@@ -604,12 +612,22 @@
       }
       var name = (user.user_metadata && user.user_metadata.name) || state.pendingLoginName || email;
       state.identity = { name: name, email: email };
+      state.isSuperAdmin = (email === OWNER_EMAIL);
       if(state.pendingLoginName && state.pendingLoginName !== (user.user_metadata && user.user_metadata.name)){
         sb.auth.updateUser({ data: { name: state.pendingLoginName } });
       }
       sb.rpc("is_admin").then(function(r2){
         state.isAdminFlag = !!(r2.data);
         renderAll();
+      });
+      sb.rpc("current_tenant").then(function(r3){
+        if(r3.error){ console.error(r3.error); return; }
+        state.tenant = r3.data || "deekmanenterprises.com";
+      });
+      sb.rpc("current_company_name").then(function(r4){
+        if(r4.error){ console.error(r4.error); return; }
+        state.companyName = r4.data || "Deekman Enterprises";
+        applyBranding();
       });
       loadAll();
       subscribeRealtime();
@@ -618,6 +636,12 @@
   }
 
   function isAdmin(){ return state.isAdminFlag; }
+
+  function applyBranding(){
+    var sub = $("#brand-sub"); if(sub) sub.textContent = state.companyName;
+    var mark = $("#brand-mark"); if(mark) mark.textContent = initials(state.companyName).slice(0,2);
+    document.title = "Werknemers portaal " + state.companyName;
+  }
 
   function logout(){ sb.auth.signOut(); }
 
@@ -674,9 +698,9 @@
     });
   }
   function loadDomains(){
-    sb.from("allowed_domains").select("domain").order("domain").then(function(res){
+    sb.from("allowed_domains").select("domain,company_name").order("domain").then(function(res){
       if(res.error){ console.error(res.error); return; }
-      state.allowedDomains = (res.data || []).map(function(r){ return r.domain; });
+      state.allowedDomains = res.data || [];
       renderAll();
     });
   }
@@ -890,20 +914,26 @@
     $all(".chip", root).forEach(function(c){ c.addEventListener("click", function(){ state.filters.status = c.getAttribute("data-status"); renderAllTasks(); }); });
   }
 
-  function domainsPanelHtml(){
+  function companiesPanelHtml(){
     return (
-      '<div class="admin-panel"><h3>Toegestane e-maildomeinen</h3>' +
-      '<p class="desc" style="margin-bottom:10px;">Iedereen met een e-mailadres op een van deze domeinen mag een inlogcode aanvragen (naast '+esc(OWNER_EMAIL)+', die altijd toegang houdt).</p>' +
+      '<div class="admin-panel"><h3>Bedrijven</h3>' +
+      '<p class="desc" style="margin-bottom:10px;">Elk bedrijf hieronder heeft zijn eigen, volledig gescheiden taken, websites, medewerkers en beheerders. Medewerkers van dat bedrijf zien hun eigen bedrijfsnaam bovenin het portaal in plaats van "Deekman Enterprises".</p>' +
       '<div class="admin-list">' +
         (state.allowedDomains.length === 0
-          ? '<div class="hint-small">Nog geen domeinen toegevoegd.</div>'
+          ? '<div class="hint-small">Nog geen bedrijven toegevoegd.</div>'
           : state.allowedDomains.map(function(d){
-              return '<div class="admin-row"><span class="email">'+esc(d)+'</span>' +
-                '<button type="button" class="icon-btn" data-action="remove-domain" data-domain="'+esc(d)+'" title="Verwijderen" aria-label="Verwijderen">' +
+              return '<div class="admin-row"><span style="font-weight:600;min-width:140px;">'+esc(d.company_name||"(geen naam)")+'</span><span class="email">'+esc(d.domain)+'</span>' +
+                '<button type="button" class="icon-btn" data-action="remove-domain" data-domain="'+esc(d.domain)+'" title="Verwijderen" aria-label="Verwijderen">' +
                 '<svg viewBox="0 0 20 20" fill="none"><path d="M5 6h10M8.5 6V4.5h3V6M6 6l.6 10h6.8L14 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
             }).join("")) +
       '</div>' +
-      '<form id="domain-add-form" class="admin-add-row"><input type="text" id="domain-add-value" placeholder="@bedrijfsnaam.nl" required><button type="submit" class="btn small">Toevoegen</button></form></div>'
+      '<form id="domain-add-form" class="admin-add-row">' +
+        '<input type="text" id="company-add-name" placeholder="Bedrijfsnaam" required style="flex:0 0 140px;">' +
+        '<input type="text" id="domain-add-value" placeholder="bedrijfsnaam.nl" required>' +
+        '<input type="email" id="company-add-admin" placeholder="(optioneel) eerste beheerder e-mail">' +
+        '<button type="submit" class="btn small">Toevoegen</button></form>' +
+      '<p class="hint-small" style="margin-top:6px;">Vul optioneel meteen een beheerder in, zodat dat bedrijf direct zelf verder kan — anders kan niemand daar nog medewerkers toevoegen.</p>' +
+      '</div>'
     );
   }
   function employeesPanelHtml(){
@@ -965,22 +995,30 @@
           );
         }).join("") + '</div>';
     }
-    root.innerHTML = body + domainsPanelHtml() + employeesPanelHtml() + adminPanelHtml();
+    root.innerHTML = body + (state.isSuperAdmin ? companiesPanelHtml() : "") + employeesPanelHtml() + adminPanelHtml();
     var b = $("#team-new-task"); if(b) b.addEventListener("click", function(){ openTaskModal(); });
-    bindDomainsPanel(); bindEmployeesPanel(); bindAdminPanel();
+    if(state.isSuperAdmin) bindCompaniesPanel();
+    bindEmployeesPanel(); bindAdminPanel();
   }
 
-  function bindDomainsPanel(){
+  function bindCompaniesPanel(){
     var form = $("#domain-add-form");
     if(form) form.addEventListener("submit", function(e){
       e.preventDefault();
-      var raw = ($("#domain-add-value").value || "").trim().toLowerCase();
-      if(!raw) return;
-      if(raw.charAt(0) !== "@") raw = "@" + raw;
-      if(raw.indexOf(".") === -1 || raw.length < 4){ toast("Vul een geldig domein in, bijv. @bedrijfsnaam.nl"); return; }
-      sb.from("allowed_domains").insert({ domain: raw, added_by: state.identity.email }).then(function(res){
+      var companyName = ($("#company-add-name").value || "").trim();
+      var raw = ($("#domain-add-value").value || "").trim().toLowerCase().replace(/^@+/, "");
+      var adminMail = ($("#company-add-admin").value || "").trim().toLowerCase();
+      if(!companyName || !raw) return;
+      if(raw.indexOf(".") === -1 || raw.length < 4){ toast("Vul een geldig domein in, bijv. bedrijfsnaam.nl"); return; }
+      sb.from("allowed_domains").insert({ domain: raw, company_name: companyName, added_by: state.identity.email }).then(function(res){
         if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
-        toast("Domein toegevoegd");
+        toast("Bedrijf toegevoegd");
+        if(adminMail){
+          sb.from("admins").insert({ email: adminMail, tenant_domain: raw, added_by: state.identity.email }).then(function(r2){
+            if(r2.error){ toast("Beheerder koppelen mislukt: " + r2.error.message); return; }
+            toast("Eerste beheerder gekoppeld aan " + companyName);
+          });
+        }
       });
     });
   }
@@ -991,7 +1029,7 @@
       var name = ($("#employee-add-name").value || "").trim();
       var mail = ($("#employee-add-email").value || "").trim().toLowerCase();
       if(!name || !mail) return;
-      sb.from("employees").insert({ name:name, email:mail, added_by: state.identity.email }).then(function(res){
+      sb.from("employees").insert({ name:name, email:mail, added_by: state.identity.email, tenant_domain: state.tenant }).then(function(res){
         if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
         toast("Medewerker toegevoegd");
       });
@@ -1003,7 +1041,7 @@
       e.preventDefault();
       var mail = ($("#admin-add-email").value || "").trim().toLowerCase();
       if(!mail) return;
-      sb.from("admins").insert({ email:mail, added_by: state.identity.email }).then(function(res){
+      sb.from("admins").insert({ email:mail, added_by: state.identity.email, tenant_domain: state.tenant }).then(function(res){
         if(res.error){ toast("Opslaan mislukt: " + res.error.message); return; }
         toast("Beheerder toegevoegd");
       });
@@ -1194,6 +1232,7 @@
     } else {
       payload.status = "open";
       payload.created_by = state.identity.email;
+      payload.tenant_domain = state.tenant;
       op = sb.from("tasks").insert(payload);
     }
     op.then(function(res){
@@ -1228,7 +1267,8 @@
     var payload = {
       name: $("#site-name").value.trim(),
       url: $("#site-url").value.trim().replace(/^https?:\/\//i,""),
-      created_by: state.identity.email
+      created_by: state.identity.email,
+      tenant_domain: state.tenant
     };
     if(!payload.name || !payload.url) return;
     sb.from("websites").insert(payload).then(function(res){
